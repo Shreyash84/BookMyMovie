@@ -11,7 +11,7 @@ from app.db.crud import get_user_by_email
 
 router = APIRouter(
     prefix="/auth",
-    tags=["auth"]
+    tags=["Auth"]
 )    
 
 @router.post("/signup", response_model=SignUpResponse)

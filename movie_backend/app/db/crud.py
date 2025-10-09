@@ -50,6 +50,7 @@ async def get_showtime(db: AsyncSession, showtime_id: int) -> Optional[ShowTime]
 
 
 # SEATS
+# This function is key for creating the full seat map for a showtime, efficiently in one shot.
 async def bulk_create_seats(db: AsyncSession, showtime_id: int, rows: List[str], cols: int, price: int = 100):
     seats = []
     for r in rows:
@@ -83,7 +84,7 @@ async def lock_seats(db: AsyncSession, seat_ids: List[int], user_id: int, lock_s
     if not seats or any(s.status != SeatStatus.available for s in seats):
         return False
     for s in seats:
-        s.status = SeatStatus.locked
+        s.status = SeatStatus.locked   
         s.locked_by = user_id
         s.locked_until = lock_until
         db.add(s)
