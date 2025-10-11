@@ -8,7 +8,7 @@ from app.services.booking_pool import TicketPool, TicketPool as TP
 from app.db.crud import get_seats_for_showtime
 from app.db.database import async_session
 
-router = APIRouter()
+router = APIRouter(prefix="/bookings", tags=["Bookings"])
 
 # create a global pool instance
 _pool = TicketPool()
