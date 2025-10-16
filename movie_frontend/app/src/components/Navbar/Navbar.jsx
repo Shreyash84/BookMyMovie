@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import { Link } from 'react-router-dom';
 import { AppBar, Toolbar, IconButton, Menu, MenuItem, Typography, Button } from "@mui/material";
 import MenuIcon from '@mui/icons-material/Menu';
 
@@ -9,7 +10,7 @@ const Navbar = () => {
   const handleMenuClose = () => setAnchorMenu(null);
 
   const navLinks = [
-    { title: "Home", href: "/"},
+    { title: "Home", href: "/home"},
     { title: "Movies", href: "/movies"},
     { title: "Bookings", href: "/bookings"},
     { title: "Login", href: "/login"}
@@ -22,7 +23,7 @@ const Navbar = () => {
       <Toolbar className='flex justify-between'>
         {/*Logo */}
         <Typography variant="h5" className="text-slate-800 font-bold">
-          <a href="#" className="flex items-center gap-3">
+          <a href="/home" className="flex items-center gap-3">
               <div className="w-10 h-10 bg-red-600 rounded-md flex items-center justify-center text-white font-bold">B</div>
               <span className="font-semibold text-lg text-slate-900 sm:inline">BookMyMovie</span>
           </a>
@@ -30,13 +31,13 @@ const Navbar = () => {
         {/* Desktop Links */}
         <div className="hidden md:flex gap-4">
           {navLinks.map((link) => (
-            <button 
+            <Link 
               key={link.title}
-              href={link.href}
+              to={link.href}
               className="px-4 py-2 text-blue-500 hover:text-blue-700 hover:bg-slate-100 rounded transition-colors"
             >
               {link.title}
-            </button>
+            </Link>
           ))}
         </div>
 

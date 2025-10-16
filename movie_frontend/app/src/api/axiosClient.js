@@ -1,11 +1,14 @@
 import axios from "axios";
 
 const API = axios.create({
-    baseURL: process.env.REACT_APP_API_URL || "http://localhost:8000/api",
+    baseURL: process.env.REACT_APP_API_URL || "http://localhost:8000",
+    headers: {
+        "Content-Type": "application/json",
+    }
 });
 
 API.interceptors.request.use((config) => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("accesstoken");
 
     if (token){
         config.headers.Authorization = `Bearer ${token}`;
@@ -13,4 +16,4 @@ API.interceptors.request.use((config) => {
     return config;
 });
 
-export default axiosClient;
+export default API;
