@@ -1,8 +1,9 @@
 import { motion } from "framer-motion";
 import { Container, Typography, TextField, InputAdornment, Button, Box } from "@mui/material";
-import { Search, Ticket, MapPin } from "lucide-react";
+import { Search, Ticket, LucideLogIn } from "lucide-react";
 import React, { useState } from "react";
 import MovieCard from "../MovieCard/MovieCard";  // Adjust path as needed (e.g., '../components/FeaturedMovies')
+import { Link } from "react-router-dom";
 
 // Staggered animation variants
 const containerVariants = {
@@ -45,7 +46,7 @@ const Home = () => {
         {/* Hero Section */}
         <motion.div
           variants={itemVariants}
-          className="text-center mb-20"
+          className="text-center mb-10"
         >
           <Typography variant="h1" className="text-white mb-4">
             <motion.div
@@ -120,8 +121,10 @@ const Home = () => {
               Book Tickets
             </Button>
             <Button
+              component={Link} 
+              to="/login"
               variant="outlined"
-              startIcon={<MapPin className="w-5 h-5" />}
+              startIcon={<LucideLogIn className="w-5 h-5" />}
               sx={{
                 borderColor: "#ef4444",
                 color: "#ef4444",
@@ -138,7 +141,7 @@ const Home = () => {
                 }
               }}
             >
-              Find Theaters
+                Login
             </Button>
           </motion.div>
         </motion.div>
@@ -149,6 +152,18 @@ const Home = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.8 }}
         >
+        
+      <div className="text-center">
+        <h1 className="text-4xl md:text-5xl font-bold mb-3">
+          <span className="bg-gradient-to-r from-red-400 to-red-600 bg-clip-text text-transparent">
+            Featured
+          </span>{" "}
+          <span className="text-white">Movies</span>
+        </h1>
+        <p className="text-slate-400 text-base md:text-lg">
+          Don't miss out on these upcoming releases!
+        </p>
+      </div>  
           <MovieCard />
         </motion.div>
       </Container>

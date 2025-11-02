@@ -1,18 +1,18 @@
 import React, {useState} from 'react';
 import { Link } from 'react-router-dom';
-import { AppBar, Toolbar, IconButton, Menu, MenuItem, Typography, Button } from "@mui/material";
+import { AppBar, Toolbar, IconButton, Menu, MenuItem, Typography } from "@mui/material";
 import MenuIcon from '@mui/icons-material/Menu';
 
 const Navbar = () => {
-  const [anchorMenu, setAnchorMenu] = useState(null);
+  const [anchorEl, setAnchorEl] = useState(null);
   
-  const handleMenuOpen = (e) => setAnchorMenu(e.currentTarget);
-  const handleMenuClose = () => setAnchorMenu(null);
+  const handleMenuOpen = (e) => setAnchorEl(e.currentTarget);
+  const handleMenuClose = () => setAnchorEl(null);
 
   const navLinks = [
-    { title: "Home", href: "/home"},
+    { title: "Home", href: "/"},
     { title: "Movies", href: "/movies"},
-    { title: "Bookings", href: "/bookings"},
+    { title: "Showtimes", href: "/showtimes"},
     { title: "Login", href: "/login"}
   ];
 
@@ -23,10 +23,10 @@ const Navbar = () => {
       <Toolbar className='flex justify-between'>
         {/*Logo */}
         <Typography variant="h5" className="text-slate-800 font-bold">
-          <a href="/home" className="flex items-center gap-3">
+          <Link to="/" className="flex items-center gap-3">
               <div className="w-10 h-10 bg-red-600 rounded-md flex items-center justify-center text-white font-bold">B</div>
               <span className="font-semibold text-lg text-slate-900 sm:inline">BookMyMovie</span>
-          </a>
+          </Link>
         </Typography>
         {/* Desktop Links */}
         <div className="hidden md:flex gap-4">
@@ -47,8 +47,8 @@ const Navbar = () => {
               <MenuIcon className="text-red-500" />
             </IconButton>
             <Menu
-              anchorMenu={anchorMenu}
-              open={Boolean(anchorMenu)}
+              anchorEl={anchorEl}
+              open={Boolean(anchorEl)}
               onClose={handleMenuClose}
               anchorOrigin={{
                 vertical: "top",
@@ -62,7 +62,7 @@ const Navbar = () => {
             >
               {navLinks.map((link) => (
                 <MenuItem key={link.title} onClick={handleMenuClose}>
-                  <a href={link.href} className="text-blue-500 w-full block">{link.title}</a>
+                  <Link to={link.href} className="text-blue-500 w-full block">{link.title}</Link>
                   </MenuItem>
               ))}
               </Menu>

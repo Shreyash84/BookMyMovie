@@ -24,7 +24,7 @@ async def signup(request: SignUpRequest, db: AsyncSession = Depends(get_db)):
     
     name = f"{request.first_name} {request.last_name}"
     hashed_password = hash_password(request.password)
-    new_user = await User(email=request.email, password=hashed_password, name=name)
+    new_user = User(email=request.email, password=hashed_password, name=name)
     db.add(new_user)
     await db.commit()
     access_token = create_access_token({"sub": new_user.email})

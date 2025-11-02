@@ -26,7 +26,7 @@ class Movie(Base):
     title = Column(String(255), nullable=False)
     description = Column(String)
     poster_url = Column(String)
-    rating = Column(String(10))
+    rating = Column(String(100))
     release_date = Column(DateTime(timezone=True))
     created_at = Column(DateTime(timezone=True), default=datetime.now(timezone.utc))
 
