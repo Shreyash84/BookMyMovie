@@ -8,7 +8,7 @@ class MovieBase(BaseModel):
     title: str
     description: Optional[str]
     poster_url: Optional[str]
-    rating: Optional[str]
+    rating: Optional[int]
     release_date: Optional[datetime]
 
 

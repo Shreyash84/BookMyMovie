@@ -1,17 +1,22 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Star, Clock, Globe, Film, Calendar } from "lucide-react";
+import { Star, Clock, Globe, Film, Calendar, Ticket } from "lucide-react";
+import { getMovieById } from "../../api/axiosClient"; // ✅ centralized import
 
 const MovieDetails = () => {
   const { id } = useParams();
   const [movie, setMovie] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchMovie = async () => {
-      const res = await fetch(`http://localhost:8000/movie/${id}`);
-      const data = await res.json();
-      setMovie(data);
+      try {
+        const res = await getMovieById(id);
+        setMovie(res.data);
+      } catch (error) {
+        console.error("❌ Error fetching movie:", error);
+      }
     };
     fetchMovie();
   }, [id]);
@@ -73,6 +78,17 @@ const MovieDetails = () => {
                 <span>{movie.language || "N/A"}</span>
               </div>
             </div>
+
+            {/* ✅ "View Showtimes" Button */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate(`/showtimes/${movie.id}`)}
+              className="flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow-lg transition"
+            >
+              <Ticket className="w-5 h-5" />
+              View Showtimes
+            </motion.button>
           </div>
         </motion.div>
       </section>
@@ -111,7 +127,9 @@ const MovieDetails = () => {
             />
             <div className="p-6">
               <h3 className="text-xl font-semibold mb-2">Poster</h3>
-              <p className="text-slate-400 text-sm">Official artwork for {movie.title}</p>
+              <p className="text-slate-400 text-sm">
+                Official artwork for {movie.title}
+              </p>
             </div>
           </motion.div>
 
@@ -127,7 +145,9 @@ const MovieDetails = () => {
                 <Calendar className="w-5 h-5 text-red-400" />
                 <h3 className="text-xl font-semibold">Release Date</h3>
               </div>
-              <p className="text-2xl font-bold text-white">{formattedReleaseDate}</p>
+              <p className="text-2xl font-bold text-white">
+                {formattedReleaseDate}
+              </p>
             </motion.div>
 
             <motion.div
@@ -140,7 +160,9 @@ const MovieDetails = () => {
                 <Clock className="w-5 h-5 text-red-400" />
                 <h3 className="text-xl font-semibold">Duration</h3>
               </div>
-              <p className="text-xl font-bold text-white">{movie.duration || "N/A"}</p>
+              <p className="text-xl font-bold text-white">
+                {movie.duration || "N/A"}
+              </p>
             </motion.div>
 
             <motion.div
@@ -153,7 +175,9 @@ const MovieDetails = () => {
                 <Globe className="w-5 h-5 text-red-400" />
                 <h3 className="text-xl font-semibold">Language</h3>
               </div>
-              <p className="text-xl font-bold text-white">{movie.language || "N/A"}</p>
+              <p className="text-xl font-bold text-white">
+                {movie.language || "N/A"}
+              </p>
             </motion.div>
           </div>
         </div>

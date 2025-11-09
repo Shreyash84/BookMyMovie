@@ -3,6 +3,7 @@ from pydantic import Field
 
 class Settings(BaseSettings):
     DATABASE_URL: str 
+    GOOGLE_CLIENT_ID: str
     REDIS_URL: str
     SECRET_KEY: str 
     ALGORITHM: str 
@@ -12,4 +13,4 @@ class Settings(BaseSettings):
         env_file = ".env"
         env_file_encoding = "utf-8"
 
-settings = Settings()
+settings = Settings()    #type: ignore

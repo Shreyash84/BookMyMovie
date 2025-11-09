@@ -14,7 +14,7 @@ class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String(255), unique=True,nullable=False, index=True)
-    password = Column(String(255), nullable=False)
+    password = Column(String(255), nullable=True)
     name = Column(String(255), nullable=False)
     is_active = Column(Boolean, default=True)
     is_admin = Column(Boolean, default=False)
@@ -26,7 +26,7 @@ class Movie(Base):
     title = Column(String(255), nullable=False)
     description = Column(String)
     poster_url = Column(String)
-    rating = Column(String(100))
+    rating = Column(Integer)
     release_date = Column(DateTime(timezone=True))
     created_at = Column(DateTime(timezone=True), default=datetime.now(timezone.utc))
 

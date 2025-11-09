@@ -3,10 +3,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_db, get_current_user
-from app.schemas.bookingSchema import BookingRequest, BookingResponse
-from app.services.booking_pool import TicketPool, TicketPool as TP
+from app.schemas.bookingSchema import BookingRequest, BookingResponse, CancelBookingRequest
+from app.services.booking_pool import TicketPool
+
 from app.db.crud import get_seats_for_showtime
-from app.db.database import async_session
 
 router = APIRouter(prefix="/bookings", tags=["Bookings"])
 
@@ -41,9 +41,31 @@ async def get_seats(showtime_id: int, db: AsyncSession = Depends(get_db)):
             "number": s.number,
             "status": s.status.value,
             "locked_by": s.locked_by,
-            "locked_until": s.locked_until.isoformat() if s.locked_until else None,
+            "locked_until": s.locked_until.isoformat() if s.locked_until else None,   #type: ignore
             "price": s.price,
         }
         for s in seats
     ]
     return res
+
+@router.put("/{booking_id}/cancel", response_model=BookingResponse)
+async def cancel_booking_endpoint(
+    booking_id: int,
+    body: CancelBookingRequest,  # ✅ Now explicitly typed
+    user=Depends(get_current_user),
+):
+    pool = TicketPool()
+    result = await pool.enqueue_cancel(
+        booking_id=booking_id,
+        user_id=user.id,
+        seat_ids=body.seat_ids,   # ✅ Get list directly from model
+    )
+
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["message"])
+
+    return BookingResponse(
+        success=True,
+        message=result["message"],
+        booking_id=booking_id,
+    )

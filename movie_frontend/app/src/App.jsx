@@ -7,12 +7,15 @@ import Showtimes from "./components/Pages/Showimes";
 import Auth from "./components/Auth/Auth";
 import PageWrapper from "./components/PageWrapper/PageWrapper";
 import MovieDetails from "./components/MovieDescription/MovieDesciption";
+import SeatSelection from "./components/Pages/SeatSelection";
+import ProtectedRoute from "./components/Context/ProtectedRoute";
+
 
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
 const App = () => {
   return (
-    <GoogleOAuthProvider clientId="1007634938595-q6nk08ig8jo75abo20ppuo9lbaj8o7ir.apps.googleusercontent.com" >
+    <GoogleOAuthProvider clientId = {import.meta.env.VITE_GOOGLE_CLIENT_ID}>
       <Router>
         <Navbar />
         <PageWrapper>
@@ -20,7 +23,13 @@ const App = () => {
             <Route path="/" element={<Home />} />
             <Route path="/movies" element={<Movies />} />
             <Route path="/movie/:id" element={<MovieDetails />} />
-            <Route path="/showtimes" element={<Showtimes />} />
+            <Route path="/showtimes/:movieId" element={<Showtimes />} />
+            <Route path="/seats/:showtime_id" element={
+              <ProtectedRoute>
+                <SeatSelection />
+              </ProtectedRoute>
+            }
+            />
             <Route path="/login" element={<Auth />} />
           </Routes>
 

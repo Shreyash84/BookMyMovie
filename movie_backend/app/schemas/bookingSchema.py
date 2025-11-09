@@ -5,6 +5,10 @@ from pydantic import BaseModel
 
 class SeatSelection(BaseModel):
     seat_id: int
+    
+
+class CancelBookingRequest(BaseModel):
+    seat_ids: List[int]
 
 
 class BookingRequest(BaseModel):

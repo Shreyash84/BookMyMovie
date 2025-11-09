@@ -1,8 +1,7 @@
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import select, update, delete, func
-from sqlalchemy.orm import selectinload
+from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import User, Movie, ShowTime, Seat, Booking, SeatStatus
@@ -122,3 +121,58 @@ async def mark_seats_booked(db: AsyncSession, seat_ids: List[int]):
         s.locked_until = None
         db.add(s)
     await db.flush()
+    
+
+async def get_booking_by_id(db, booking_id: int):
+    result = await db.execute(select(Booking).filter(Booking.id == booking_id))
+    return result.scalars().first()
+
+async def mark_seats_available(db, seat_ids: list[int]):
+    if not seat_ids:
+        return
+    await db.execute(
+        Seat.__table__.update()
+        .where(Seat.id.in_(seat_ids))
+        .values(status="available", locked_by=None, locked_until=None)
+    )
+
+from sqlalchemy import update
+from sqlalchemy.future import select
+from app.db.models import Booking
+import json
+
+async def remove_seats_from_booking(db, booking_id: int, seat_ids: list[int]):
+    result = await db.execute(select(Booking).where(Booking.id == booking_id))
+    booking = result.scalars().first()
+    if not booking:
+        return None
+
+    # Filter out cancelled seats
+    remaining = [s for s in booking.seats if s["seat_id"] not in seat_ids]
+
+    # Update DB JSON
+    await db.execute(
+        update(Booking)
+        .where(Booking.id == booking_id)
+        .values(seats=remaining)
+    )
+    await db.commit()
+    return remaining
+
+
+async def create_user_if_not_exists(db, email, name, picture=None):
+    from app.db.models import User
+    result = await db.execute(select(User).where(User.email == email))
+    user = result.scalar_one_or_none()
+    if not user:
+        user = User(
+            email=email,
+            name=name,
+            password="google_password",  # Google users don’t have passwords
+            is_active=True,
+            is_admin=False,
+        )
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
+    return user
