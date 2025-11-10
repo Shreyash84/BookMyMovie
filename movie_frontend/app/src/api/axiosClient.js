@@ -8,7 +8,7 @@ const API = axios.create({
 });
 
 API.interceptors.request.use((config) => {
-    const token = localStorage.getItem("accesstoken");
+    const token = localStorage.getItem("token");
 
     if (token){
         config.headers.Authorization = `Bearer ${token}`;
@@ -49,10 +49,10 @@ export const getShowtimeSeats = (showtimeId) =>
    🎟️ BOOKING ROUTES  ->  /bookings
 ========================================================== */
 export const createBooking = (data) => API.post("/bookings/", data);
-export const getShowtimeSeatsForBooking = (showtimeId) =>
-  API.get(`/bookings/showtime/${showtimeId}/seats`);
-export const cancelBooking = (bookingId, data) =>
-  API.put(`/bookings/${bookingId}/cancel`, data);
+export const getShowtimeSeatsForBooking = (showtimeId) => API.get(`/bookings/showtime/${showtimeId}/seats`);
+export const cancelBooking = (bookingId, data) => API.put(`/bookings/${bookingId}/cancel`, data);
+export const updateBooking = (bookingId, data) => API.put(`/bookings/${bookingId}/update`, data);
+export const getBookingById = (bookingId) => API.get(`/bookings/${bookingId}`);
 
 /* ==========================================================
    💬 WEBSOCKET (real-time seat updates)

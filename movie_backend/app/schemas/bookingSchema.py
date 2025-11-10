@@ -20,3 +20,7 @@ class BookingResponse(BaseModel):
     success: bool
     message: str
     booking_id: int | None = None
+
+class BookingUpdateRequest(BaseModel):
+    """Schema for editing a booking (swapping seats)"""
+    new_seat_ids: List[int]

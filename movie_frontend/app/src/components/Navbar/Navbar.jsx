@@ -15,7 +15,8 @@ import {
 import MenuIcon from "@mui/icons-material/Menu";
 import LogoutIcon from "@mui/icons-material/Logout";
 import LoginIcon from "@mui/icons-material/Login";
-import { useAuth } from "../Context/AuthContext"; // ✅ Auth Context
+import ConfirmationNumberIcon from "@mui/icons-material/ConfirmationNumber"; // 🎟️ for MyBookings icon
+import { useAuth } from "../Context/AuthContext";
 
 const Navbar = () => {
   const [anchorElNav, setAnchorElNav] = useState(null);
@@ -36,12 +37,11 @@ const Navbar = () => {
   const handleLogout = () => {
     logout();
     handleUserMenuClose();
-    navigate("/"); // ✅ redirect to home
+    navigate("/");
   };
 
   // --- Avatar fallback ---
-  const avatarSeed =
-    user?.name || user?.email?.split("@")[0] || "guest"; // ✅ ensures identicon always works
+  const avatarSeed = user?.name || user?.email?.split("@")[0] || "guest";
   const avatarSrc =
     user?.picture || `https://api.dicebear.com/8.x/identicon/svg?seed=${avatarSeed}`;
 
@@ -98,7 +98,13 @@ const Navbar = () => {
         </Typography>
 
         {/* Desktop Nav */}
-        <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", gap: 2 }}>
+        <Box
+          sx={{
+            display: { xs: "none", md: "flex" },
+            alignItems: "center",
+            gap: 2,
+          }}
+        >
           {navLinks.map((link) => (
             <Button
               key={link.title}
@@ -115,9 +121,33 @@ const Navbar = () => {
             </Button>
           ))}
 
+          {/* 🟢 My Bookings (only visible when logged in)
+          {isAuthenticated && (
+            <Button
+              component={Link}
+              to="/mybookings"
+              startIcon={<ConfirmationNumberIcon />}
+              sx={{
+                color: "primary.main",
+                textTransform: "none",
+                fontWeight: 500,
+                "&:hover": { bgcolor: "grey.50", color: "primary.dark" },
+              }}
+            >
+              My Bookings
+            </Button>
+          )} */}
+
+          {/* Auth Section */}
           {isAuthenticated ? (
             <>
-              <Typography variant="body1" sx={{ color: "text.secondary", textTransform: "capitalize" }}>
+              <Typography
+                variant="body1"
+                sx={{
+                  color: "text.secondary",
+                  textTransform: "capitalize",
+                }}
+              >
                 Hi {user?.name?.split(" ")[0] || user?.email?.split("@")[0] || "User"}
               </Typography>
               <IconButton onClick={handleUserMenuOpen} size="small">
@@ -148,6 +178,20 @@ const Navbar = () => {
                     {user?.email}
                   </Typography>
                 </Box>
+
+                {/* My Bookings inside menu (for redundancy on mobile) */}
+                <MenuItem
+                  component={Link}
+                  to="/mybookings"
+                  onClick={handleUserMenuClose}
+                  sx={{
+                    "&:hover": { bgcolor: "grey.50" },
+                  }}
+                >
+                  <ConfirmationNumberIcon sx={{ mr: 1, fontSize: 18, color: "primary.main" }} />
+                  My Bookings
+                </MenuItem>
+
                 <MenuItem
                   onClick={handleLogout}
                   sx={{
@@ -232,6 +276,25 @@ const Navbar = () => {
               </Typography>
             </MenuItem>
           ))}
+
+          {/* My Bookings in mobile nav */}
+          {isAuthenticated && (
+            <MenuItem onClick={handleNavClose}>
+              <Typography
+                component={Link}
+                to="/mybookings"
+                sx={{
+                  color: "primary.main",
+                  fontWeight: 500,
+                  textDecoration: "none",
+                  width: "100%",
+                  textAlign: "center",
+                }}
+              >
+                My Bookings
+              </Typography>
+            </MenuItem>
+          )}
 
           <Divider />
 

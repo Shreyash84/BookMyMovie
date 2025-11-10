@@ -3,10 +3,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_db, get_current_user
-from app.schemas.bookingSchema import BookingRequest, BookingResponse, CancelBookingRequest
+from app.schemas.bookingSchema import BookingRequest, BookingResponse, CancelBookingRequest, BookingUpdateRequest
 from app.services.booking_pool import TicketPool
 
 from app.db.crud import get_seats_for_showtime
+from sqlalchemy.future import select
+from app.db.models import Booking, Movie, ShowTime
 
 router = APIRouter(prefix="/bookings", tags=["Bookings"])
 
@@ -29,6 +31,29 @@ async def create_booking_endpoint(payload: BookingRequest, db: AsyncSession = De
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=result.get("message"))
     return BookingResponse(success=True, message="Booked", booking_id=result.get("booking_id"))
 
+@router.get("/me")
+async def get_my_bookings(db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
+    query = (
+        select(Booking, Movie.title, ShowTime.start_time, ShowTime.id.label("showtime_id"))
+        .join(ShowTime, Booking.showtime_id == ShowTime.id)
+        .join(Movie, ShowTime.movie_id == Movie.id)
+        .where(Booking.user_id == user.id)
+    )
+
+    result = await db.execute(query)
+    bookings = []
+    for booking, movie_title, start_time, showtime_id in result.all():
+        bookings.append({
+            "id": booking.id,
+            "movie_title": movie_title,
+            "showtime_id": showtime_id,  # ✅ Explicitly from query
+            "showtime": start_time,
+            "seats": booking.seats,
+            "total_amount": booking.total_amount,
+            "status": booking.status,
+            "created_at": booking.created_at,
+        })
+    return bookings
 
 @router.get("/showtime/{showtime_id}/seats")
 async def get_seats(showtime_id: int, db: AsyncSession = Depends(get_db)):
@@ -69,3 +94,61 @@ async def cancel_booking_endpoint(
         message=result["message"],
         booking_id=booking_id,
     )
+    
+@router.get("/{booking_id}")
+async def get_booking_by_id_endpoint(
+    booking_id: int,
+    db: AsyncSession = Depends(get_db),
+    user=Depends(get_current_user),
+):
+    """
+    Get details of a specific booking (used in EditBooking page).
+    """
+    query = (
+        select(Booking, Movie.title, ShowTime.start_time)
+        .join(ShowTime, Booking.showtime_id == ShowTime.id)
+        .join(Movie, ShowTime.movie_id == Movie.id)
+        .where(Booking.id == booking_id, Booking.user_id == user.id)
+    )
+    result = await db.execute(query)
+    record = result.first()
+
+    if not record:
+        raise HTTPException(status_code=404, detail="Booking not found")
+
+    booking, movie_title, start_time = record
+    return {
+        "id": booking.id,
+        "movie_title": movie_title,
+        "showtime": start_time,
+        "showtime_id": booking.showtime_id,
+        "seats": booking.seats,
+        "total_amount": booking.total_amount,
+        "status": booking.status,
+        "created_at": booking.created_at,
+    }
+
+    
+@router.put("/{booking_id}/update", response_model=BookingResponse)
+async def update_booking_endpoint(
+    booking_id: int,
+    body: BookingUpdateRequest,
+    user=Depends(get_current_user),
+):
+    pool = TicketPool()
+    result = await pool.enqueue_update(
+        booking_id=booking_id,
+        user_id=user.id,
+        new_seat_ids=body.new_seat_ids,
+    )
+
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["message"])
+
+    return BookingResponse(
+        success=True,
+        message=result["message"],
+        booking_id=booking_id,
+    )
+    
+
