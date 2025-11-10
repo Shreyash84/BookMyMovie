@@ -1,7 +1,7 @@
 # app/schemas/booking.py
-from typing import List
+from typing import List, Optional, Dict, Any
 from pydantic import BaseModel
-
+from datetime import datetime
 
 class SeatSelection(BaseModel):
     seat_id: int
@@ -19,7 +19,15 @@ class BookingRequest(BaseModel):
 class BookingResponse(BaseModel):
     success: bool
     message: str
-    booking_id: int | None = None
+    booking_id: Optional[int] = None
+    movie_title: Optional[str] = None
+    showtime: Optional[datetime] = None
+    hall: Optional[str] = None
+    seats: Optional[List[Dict[str, Any]]] = None
+    total_amount: Optional[int] = None
+
+    class Config:
+        from_attributes = True
 
 class BookingUpdateRequest(BaseModel):
     """Schema for editing a booking (swapping seats)"""

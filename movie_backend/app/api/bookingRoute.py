@@ -2,11 +2,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.db.database import async_session
 from app.api.deps import get_db, get_current_user
 from app.schemas.bookingSchema import BookingRequest, BookingResponse, CancelBookingRequest, BookingUpdateRequest
 from app.services.booking_pool import TicketPool
 
-from app.db.crud import get_seats_for_showtime
+from app.db.crud import get_seats_for_showtime, get_booking_by_id
 from sqlalchemy.future import select
 from app.db.models import Booking, Movie, ShowTime
 
@@ -17,19 +18,48 @@ _pool = TicketPool()
 
 
 @router.post("/", response_model=BookingResponse)
-async def create_booking_endpoint(payload: BookingRequest, db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
-    # Additional validation: check seats belong to showtime, prices etc
+async def create_booking_endpoint(
+    payload: BookingRequest,
+    db: AsyncSession = Depends(get_db),
+    user=Depends(get_current_user)
+):
+    # ✅ Validate seats belong to the showtime
     seats = await get_seats_for_showtime(db, payload.showtime_id)
     seats_map = {s.id: s for s in seats}
     for sid in payload.seat_ids:
         if sid not in seats_map:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"seat {sid} not found for this showtime")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"seat {sid} not found for this showtime"
+            )
 
-    # Enqueue booking request into the TicketPool
+    # ✅ Create booking via the TicketPool queue
     result = await _pool.enqueue_booking(user.id, payload.showtime_id, payload.seat_ids)
     if not result.get("success"):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=result.get("message"))
-    return BookingResponse(success=True, message="Booked", booking_id=result.get("booking_id"))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=result.get("message")
+        )
+
+    booking_id = result.get("booking_id")
+
+    # ✅ Fetch full info to return to frontend
+    async with async_session() as session:
+        booking = await get_booking_by_id(session, booking_id)
+        showtime = await session.get(ShowTime, booking.showtime_id)
+        movie = await session.get(Movie, showtime.movie_id)
+
+    return {
+        "success": True,
+        "message": "Booked successfully!",
+        "booking_id": booking.id,
+        "movie_title": movie.title,
+        "showtime": showtime.start_time,
+        "hall": showtime.hall,
+        "seats": booking.seats,
+        "total_amount": booking.total_amount,
+    }
+
 
 @router.get("/me")
 async def get_my_bookings(db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):

@@ -62,14 +62,14 @@ const SeatSelection = () => {
             prev.map((s) =>
               data.seat_ids.includes(s.id)
                 ? {
-                    ...s,
-                    status:
-                      data.status === "available"
-                        ? "available"
-                        : data.status === "booked"
+                  ...s,
+                  status:
+                    data.status === "available"
+                      ? "available"
+                      : data.status === "booked"
                         ? "booked"
                         : s.status,
-                  }
+                }
                 : s
             )
           );
@@ -136,27 +136,46 @@ const SeatSelection = () => {
         if (selected.length === 0) {
           // 🚨 No seats selected → cancel booking
           if (!window.confirm("Are you sure you want to cancel this booking?")) return;
-          await cancelBooking(booking.id, { seat_ids: booking.seats.map((s) => s.seat_id) });
+          await cancelBooking(booking.id, {
+            seat_ids: booking.seats.map((s) => s.seat_id),
+          });
           alert("❌ Booking cancelled successfully!");
-        } else {
-          // ✅ Update booking normally
-          await updateBooking(booking.id, { new_seat_ids: selected });
-          alert("✅ Booking updated successfully!");
+          navigate("/mybookings");
+          return;
         }
+
+        // ✅ Update booking normally
+        await updateBooking(booking.id, { new_seat_ids: selected });
+        alert("✅ Booking updated successfully!");
+        navigate("/mybookings");
       } else {
-        await createBooking({
+        // 🟢 New Booking Flow → Navigate to confirmation page
+        // 🟢 New Booking Flow → Navigate to confirmation page
+        const res = await createBooking({
           showtime_id: Number(showtime_id),
           seat_ids: selected,
         });
-        alert("🎉 Booking confirmed successfully!");
-      }
 
-      navigate("/mybookings");
+        const data = res.data;
+
+        // ✅ Construct a confirmation payload using backend data
+        const bookingDetails = {
+          movie: data.movie_title || "Unknown Movie",
+          hall: data.hall || "Main Hall",
+          showtime: data.showtime,
+          seats: data.seats?.map((s) => `${s.row}${s.number}`),
+          totalAmount: data.total_amount || 0,
+          bookingId: data.booking_id,
+        };
+
+        navigate("/booking-confirmation", { state: bookingDetails });
+      }
     } catch (err) {
       console.error("Booking/update failed:", err);
       alert(err.response?.data?.detail || "Something went wrong. Please try again.");
     }
   };
+
 
   if (loading) {
     return (
@@ -210,8 +229,8 @@ const SeatSelection = () => {
                 const base = isUnavailable
                   ? STATUS.booked.cls
                   : isSelected
-                  ? STATUS.selected.cls
-                  : STATUS.available.cls;
+                    ? STATUS.selected.cls
+                    : STATUS.available.cls;
 
                 return (
                   <button
@@ -238,8 +257,8 @@ const SeatSelection = () => {
             <p className="text-sm text-gray-300">
               {selected.length
                 ? `Selected: ${selected
-                    .map((id) => `${seatMap.byId[id]?.row}${seatMap.byId[id]?.number}`)
-                    .join(", ")}`
+                  .map((id) => `${seatMap.byId[id]?.row}${seatMap.byId[id]?.number}`)
+                  .join(", ")}`
                 : "No seats selected"}
             </p>
             <p className="text-lg font-semibold">₹{total}</p>
@@ -247,13 +266,12 @@ const SeatSelection = () => {
 
           <button
             onClick={handleAction}
-            className={`min-w-32 rounded-lg px-5 py-2 font-medium ${
-              isEditMode
+            className={`min-w-32 rounded-lg px-5 py-2 font-medium ${isEditMode
                 ? selected.length === 0
                   ? "bg-red-600 hover:bg-red-700"
                   : "bg-yellow-600 hover:bg-yellow-700"
                 : "bg-indigo-600 hover:bg-indigo-700"
-            }`}
+              }`}
           >
             {isEditMode
               ? selected.length === 0
