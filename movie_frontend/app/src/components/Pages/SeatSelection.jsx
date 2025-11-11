@@ -6,6 +6,7 @@ import {
   getShowtimeSeatsForBooking,
   updateBooking,
   cancelBooking,
+  getShowtimeSocket
 } from "../../api/axiosClient";
 
 const STATUS = {

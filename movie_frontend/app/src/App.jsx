@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar/Navbar";
 import Home from "./components/Pages/Home";
 import Movies from "./components/Pages/Movies";
-import Showtimes from "./components/Pages/Showimes";
+import Showtimes from "./components/Pages/Showtimes";
 import Auth from "./components/Auth/Auth";
 import PageWrapper from "./components/PageWrapper/PageWrapper";
 import MovieDetails from "./components/MovieDescription/MovieDesciption";

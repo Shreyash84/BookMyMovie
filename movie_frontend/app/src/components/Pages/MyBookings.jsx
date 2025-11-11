@@ -121,12 +121,6 @@ const MyBookings = () => {
                       Edit Booking
                     </button>
 
-                    <button
-                      onClick={() => handleCancel(b.id, b.seats)}
-                      className="bg-red-500 px-4 py-2 rounded-lg hover:bg-red-600 text-sm font-medium transition"
-                    >
-                      Cancel
-                    </button>
                   </div>
                 )}
               </div>

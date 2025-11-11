@@ -1,46 +1,47 @@
 import React, { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { getCurrentlyShowingMovies, getUpcomingMovies } from "../../api/axiosClient";
-import { Film, Calendar, Loader2 } from "lucide-react";
+import { Film, Calendar, Loader2, Star } from "lucide-react";
 import { Link } from "react-router-dom";
+import SearchBar from "../SearchBar/SearchBar";
 
-// ✨ Animation Variants
+
 const sectionVariants = {
   hidden: { opacity: 0, y: 40 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.6, ease: "easeOut" },
-  },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
 };
 
 const gridVariants = {
-  hidden: {},
-  visible: {
-    transition: {
+  hidden: { opacity: 0 },
+  visible: { 
+    opacity: 1,
+    transition: { 
       staggerChildren: 0.08,
-      delayChildren: 0.2,
-    },
+      duration: 0.4 
+    } 
   },
+  exit: { opacity: 0, transition: { duration: 0.3 } }
 };
 
 const cardVariants = {
   hidden: { opacity: 0, y: 20, scale: 0.95 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { duration: 0.4, ease: "easeOut" },
+  visible: { 
+    opacity: 1, 
+    y: 0, 
+    scale: 1, 
+    transition: { duration: 0.4, ease: "easeOut" } 
   },
 };
+
 
 const Movies = () => {
   const [nowPlaying, setNowPlaying] = useState([]);
   const [upcoming, setUpcoming] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  // 🧠 Fetch movie data
+
   useEffect(() => {
     const fetchMovies = async () => {
       try {
@@ -48,7 +49,6 @@ const Movies = () => {
           getCurrentlyShowingMovies(),
           getUpcomingMovies(),
         ]);
-
         setNowPlaying(nowRes.data || []);
         setUpcoming(upcomingRes.data || []);
       } catch (err) {
@@ -58,192 +58,246 @@ const Movies = () => {
         setLoading(false);
       }
     };
-
     fetchMovies();
   }, []);
 
+
   if (loading)
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-900 text-slate-300 gap-3">
+      <div className="flex flex-col items-center justify-center min-h-screen text-slate-300 gap-3">
         <Loader2 className="animate-spin w-7 h-7 text-red-400" />
         <p className="animate-pulse text-sm tracking-wider">Loading movies...</p>
       </div>
     );
 
+
   if (error)
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-900 text-red-400">
+      <div className="flex items-center justify-center min-h-screen text-red-400">
         {error}
       </div>
     );
 
-  return (
-    <div className="bg-slate-900 text-white min-h-screen py-16 px-6 overflow-hidden">
-      <motion.div
-        className="max-w-7xl mx-auto"
-        initial="hidden"
-        animate="visible"
-        transition={{ staggerChildren: 0.3 }}
-      >
-        {/* 🎥 Now Showing */}
-        <MovieSection
-          title="Now Showing"
-          icon={<Film className="text-green-400 w-7 h-7" />}
-          movies={nowPlaying}
-          delay={0.1}
-        />
 
-        {/* 🎬 Coming Soon */}
-        <MovieSection
-          title="Coming Soon"
-          icon={<Calendar className="text-yellow-400 w-7 h-7" />}
-          movies={upcoming}
-          delay={0.3}
-        />
-      </motion.div>
+  return (
+    <div className="min-h-screen text-white py-16 px-6">
+      {/* 🎬 Hero Header */}
+      <div className="max-w-6xl mx-auto mb-20 text-center">
+        <motion.h1
+          initial={{ opacity: 0, y: -30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-5xl md:text-6xl font-extrabold mb-3 bg-gradient-to-r from-red-400 via-orange-400 to-yellow-400 bg-clip-text text-transparent"
+        >
+          Experience Cinema Like Never Before
+        </motion.h1>
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.6 }}
+          className="text-gray-400 text-lg"
+        >
+          Discover top movies, upcoming releases, and your next favorite story.
+        </motion.p>
+      </div>
+
+
+      {/* 🔍 Search Bar */}
+      <SearchBar onSearch={setSearchQuery} />
+
+
+      {/* 🎥 Sections with Pagination */}
+      <MovieSection
+        title="Now Showing"
+        icon={<Film className="text-green-400 w-7 h-7" />}
+        movies={nowPlaying}
+        searchQuery={searchQuery}
+      />
+      <MovieSection
+        title="Coming Soon"
+        icon={<Calendar className="text-yellow-400 w-7 h-7" />}
+        movies={upcoming}
+        searchQuery={searchQuery}
+      />
     </div>
   );
 };
 
-// 🎞️ Movie Section Component (with Cinematic Split Text Header)
-const MovieSection = ({ title, icon, movies, delay }) => (
-  <motion.section
-    variants={sectionVariants}
-    initial="hidden"
-    whileInView="visible"
-    viewport={{ once: true, amount: 0.2 }}
-    transition={{ delay }}
-    className="mb-24"
-  >
-    {/* 🔥 Cinematic Split-Text Title (Side by Side Layout) */}
-    <motion.div
-      className="flex items-center justify-center gap-4 mb-16 overflow-visible"
-      variants={{
-        hidden: { opacity: 0 },
-        visible: {
-          opacity: 1,
-          transition: { staggerChildren: 0.05, delayChildren: 0.2 },
-        },
-      }}
+
+const MovieSection = ({ title, icon, movies, searchQuery }) => {
+  const [page, setPage] = useState(1);
+  const moviesPerPage = 4;
+
+
+  const filteredMovies = movies.filter(
+    (movie) =>
+      movie.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (movie.description && movie.description.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
+
+  const totalPages = Math.max(1, Math.ceil(filteredMovies.length / moviesPerPage));
+
+
+  // Ensure current page never exceeds available pages
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [totalPages, page]);
+
+
+  // Automatically reset to first page when movie list or search changes
+  useEffect(() => {
+    setPage(1);
+  }, [movies, searchQuery]);
+
+
+  // Get movies for current page
+  const startIndex = (page - 1) * moviesPerPage;
+  const currentMovies = filteredMovies.slice(startIndex, startIndex + moviesPerPage);
+
+
+  const handlePrev = () => setPage((p) => Math.max(p - 1, 1));
+  const handleNext = () => setPage((p) => Math.min(p + 1, totalPages));
+
+
+
+  return (
+    <motion.section
+      variants={sectionVariants}
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: true }}
+      viewport={{ once: true, amount: 0.2 }}
+      className="max-w-7xl mx-auto mb-24"
     >
-      {/* 🎞️ Icon */}
-      <motion.div
-        initial={{ scale: 0.8, opacity: 0 }}
-        whileInView={{ scale: 2, opacity: 1 }}
-        transition={{ duration: 0.6 }}
-        className="flex-shrink-0 pb-3 pr-1"
-      >
+      {/* Section Header */}
+      <div className="flex items-center justify-center gap-3 mb-12">
         {icon}
-      </motion.div>
+        <h2 className="text-3xl md:text-4xl font-bold tracking-wide bg-gradient-to-r from-red-400 to-red-700 bg-clip-text text-transparent py-3">
+          {title}
+        </h2>
+      </div>
 
-      {/* 🅰️ Split-Text Animation */}
-      <motion.h2
-        className="text-center text-5xl md:text-6xl font-extrabold tracking-wide leading-none pb-3"
-        style={{ marginBottom: "0.4rem" }}
-      >
-        {title.split("").map((char, index) => (
-          <motion.span
-            key={index}
-            variants={{
-              hidden: { y: 50, opacity: 0 },
-              visible: {
-                y: 0,
-                opacity: 1,
-                transition: { duration: 0.4, ease: "easeOut" },
-              },
-            }}
-            className={`pb-3 inline-block text-transparent bg-gradient-to-r from-red-400 via-red-500 to-red-700 bg-clip-text drop-shadow-[0_0_18px_rgba(255,0,0,0.7)] ${
-              char === " " ? "mx-2" : ""
-            }`}
-          >
-            {char}
-          </motion.span>
-        ))}
-      </motion.h2>
-    </motion.div>
 
-    {/* 🎞️ Movie Grid */}
-    {movies.length === 0 ? (
-      <motion.p
-        className="text-slate-400 text-center italic"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-      >
-        No movies found in this category.
-      </motion.p>
-    ) : (
-      <motion.div
-        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10"
-        variants={gridVariants}
-        initial="hidden"
-        animate="visible"
-      >
-        {movies.map((movie) => (
+      {/* Movie Grid */}
+      {currentMovies.length === 0 ? (
+        <p className="text-center text-gray-500 italic">
+          {searchQuery ? `No movies found for "${searchQuery}".` : "No movies found."}
+        </p>
+      ) : (
+        <AnimatePresence mode="wait">
           <motion.div
-            key={movie.id}
-            variants={cardVariants}
-            whileHover={{
-              scale: 1.05,
-              y: -8,
-              boxShadow:
-                "0px 0px 35px rgba(255, 0, 0, 0.6), 0px 0px 70px rgba(255, 50, 50, 0.35)",
-              transition: { duration: 0.3, ease: "easeOut" },
-            }}
-            className="relative bg-slate-800/50 border border-slate-700/50 hover:border-red-500/70 rounded-2xl overflow-hidden backdrop-blur-sm cursor-pointer group transition-all duration-300"
+            key={page}
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10"
+            variants={gridVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
           >
-            <Link to={`/movie/${movie.id}`}>
-              {/* Poster */}
+            {currentMovies.map((movie) => (
               <motion.div
-                className="relative overflow-hidden h-[420px]"
-                whileHover={{ scale: 1.02 }}
+                key={movie.id}
+                variants={cardVariants}
+                whileHover={{
+                  scale: 1.04,
+                  y: -6,
+                  boxShadow:
+                    "0px 0px 35px rgba(255, 0, 0, 0.25), 0px 0px 60px rgba(255, 60, 60, 0.1)",
+                }}
+                transition={{ type: "spring", stiffness: 200, damping: 20 }}
+                className="relative rounded-2xl overflow-hidden bg-slate-800/40 border border-slate-700 hover:border-red-500/60 transition-all duration-500 backdrop-blur-sm"
               >
-                <img
-                  src={
-                    movie.poster_url ||
-                    "https://via.placeholder.com/300x400?text=No+Poster"
-                  }
-                  alt={movie.title}
-                  className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
-                />
-                {/* Overlay gradient */}
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/30 to-transparent opacity-80 group-hover:opacity-90 transition duration-500" />
-              </motion.div>
+                <Link to={`/movie/${movie.id}`} className="block">
+                  <div className="relative h-[420px] overflow-hidden">
+                    <motion.img
+                      src={
+                        movie.poster_url ||
+                        "https://via.placeholder.com/300x400?text=No+Poster"
+                      }
+                      alt={movie.title}
+                      className="w-full h-full object-cover transition-transform duration-700 ease-out"
+                      whileHover={{ scale: 1.08 }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-90 transition-all duration-700" />
+                  </div>
 
-              {/* Info */}
-              <motion.div
-                className="absolute bottom-0 w-full p-5 bg-gradient-to-t from-slate-900/95 via-slate-900/60 to-transparent"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-              >
-                <h3 className="text-lg font-semibold line-clamp-1 mb-1">
-                  {movie.title}
-                </h3>
-                <p className="text-sm text-slate-400 line-clamp-2 mb-2">
-                  {movie.description || "No description available."}
-                </p>
 
-                <div className="flex justify-between items-center text-xs text-slate-400">
-                  <span>⭐ {movie.rating || "N/A"}</span>
-                  <span>
-                    {movie.release_date
-                      ? new Date(movie.release_date).toLocaleDateString(
-                          "en-US",
-                          { month: "short", day: "numeric", year: "numeric" }
-                        )
-                      : "TBA"}
-                  </span>
-                </div>
+                  <div className="absolute bottom-0 w-full p-5 bg-gradient-to-t from-slate-900/95 via-slate-900/70 to-transparent">
+                    <motion.h3
+                      className="text-lg font-semibold mb-1"
+                      whileHover={{ color: "#ef4444" }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      {movie.title}
+                    </motion.h3>
+                    <p className="text-sm text-slate-400 line-clamp-2">
+                      {movie.description || "No description available."}
+                    </p>
+                    <div className="flex justify-between items-center mt-2 text-xs text-slate-400">
+                      <span className="flex items-center gap-1">
+                        <Star className="w-3.5 h-3.5 text-yellow-400" />
+                        {movie.rating || "N/A"}
+                      </span>
+                      <span>
+                        {movie.release_date
+                          ? new Date(movie.release_date).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })
+                          : "TBA"}
+                      </span>
+                    </div>
+                  </div>
+
+
+                  <motion.div
+                    className="absolute inset-0 pointer-events-none"
+                    whileHover={{
+                      background:
+                        "radial-gradient(circle at center, rgba(255,0,0,0.15) 0%, rgba(255,0,0,0) 70%)",
+                      opacity: 0.8,
+                    }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
+                  />
+                </Link>
               </motion.div>
-            </Link>
+            ))}
           </motion.div>
-        ))}
-      </motion.div>
-    )}
-  </motion.section>
-);
+        </AnimatePresence>
+      )}
+
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center mt-10 gap-4">
+          <button
+            onClick={handlePrev}
+            disabled={page === 1}
+            className={`px-4 py-2 rounded-md border ${page === 1
+              ? "border-gray-600 text-gray-500 cursor-not-allowed"
+              : "border-red-500 text-red-400 hover:bg-red-500/10"
+              } transition-all`}
+          >
+            Prev
+          </button>
+          <span className="text-gray-400 text-sm">
+            Page {page} of {totalPages}
+          </span>
+          <button
+            onClick={handleNext}
+            disabled={page === totalPages}
+            className={`px-4 py-2 rounded-md border ${page === totalPages
+              ? "border-gray-600 text-gray-500 cursor-not-allowed"
+              : "border-red-500 text-red-400 hover:bg-red-500/10"
+              } transition-all`}
+          >
+            Next
+          </button>
+        </div>
+      )}
+    </motion.section>
+  );
+};
+
 
 export default Movies;

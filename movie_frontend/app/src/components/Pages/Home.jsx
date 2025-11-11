@@ -83,39 +83,6 @@ const Home = () => {
             Discover blockbuster hits and indie gems in theaters near you.
           </motion.div>
 
-          {/* Search Bar */}
-          <motion.div variants={itemVariants} className="max-w-md mx-auto mb-8">
-            <TextField
-              fullWidth
-              variant="outlined"
-              placeholder="Search for movies, theaters, or genres..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Search className="text-slate-400 w-5 h-5" />
-                    </InputAdornment>
-                  ),
-                },
-              }}
-              sx={{
-                backgroundColor: "white",
-                borderRadius: "16px",
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: "16px",
-                  boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
-                  transition: "all 0.3s ease",
-                  "&:hover": { boxShadow: "0 12px 40px rgba(0,0,0,0.3)" },
-                  "&.Mui-focused": {
-                    boxShadow: "0 12px 40px rgba(239,68,68,0.3)",
-                  },
-                },
-              }}
-            />
-          </motion.div>
-
           {/* CTA Buttons */}
           <motion.div
             variants={itemVariants}

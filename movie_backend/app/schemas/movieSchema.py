@@ -10,6 +10,8 @@ class MovieBase(BaseModel):
     poster_url: Optional[str]
     rating: Optional[int]
     release_date: Optional[datetime]
+    language: Optional[str] = "English"       
+    duration: Optional[int] = 2 
 
 
 class MovieCreate(MovieBase):
@@ -29,6 +31,7 @@ class ShowTimeOut(BaseModel):
     movie_id: int
     start_time: datetime
     hall: Optional[str]
+    location: Optional[str] = "Pune"
 
     class Config:
         from_attributes = True

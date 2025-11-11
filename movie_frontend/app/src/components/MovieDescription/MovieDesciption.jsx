@@ -161,7 +161,7 @@ const MovieDetails = () => {
                 <h3 className="text-xl font-semibold">Duration</h3>
               </div>
               <p className="text-xl font-bold text-white">
-                {movie.duration || "N/A"}
+                {movie.duration || "N/A"} min
               </p>
             </motion.div>
 

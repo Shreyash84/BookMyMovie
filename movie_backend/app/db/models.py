@@ -28,6 +28,8 @@ class Movie(Base):
     poster_url = Column(String)
     rating = Column(Integer)
     release_date = Column(DateTime(timezone=True))
+    language = Column(String(50), default="English", nullable=False)
+    duration = Column(Integer, nullable=True) 
     created_at = Column(DateTime(timezone=True), default=datetime.now(timezone.utc))
 
     showtimes = relationship("ShowTime", back_populates="movie", cascade="all, delete-orphan")
@@ -37,6 +39,7 @@ class ShowTime(Base):
     id = Column(Integer, primary_key=True, index=True)
     movie_id = Column(Integer, ForeignKey("movies.id", ondelete="CASCADE"), nullable=False)
     start_time = Column((DateTime(timezone=True)), nullable=False, index=True)
+    location = Column(String(255), default="Pune", nullable=False)
     hall = Column(String(100), default="Main Hall")
     created_at = Column((DateTime(timezone=True)), default=datetime.now(timezone.utc))
 
